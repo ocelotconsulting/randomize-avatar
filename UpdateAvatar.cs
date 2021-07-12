@@ -10,6 +10,9 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
+// Image manipulation
+using System.Drawing.Common;
+
 namespace OcelotConsulting.Avatars
 {
     public static class UpdateAvatar
@@ -23,6 +26,16 @@ namespace OcelotConsulting.Avatars
         /// The endpoint we are targeting to perform the Slack update (https://api.slack.com/methods/users.setPhoto)
         /// </summary>
         public static string SlackAPI = "https://slack.com/api/users.setPhoto";
+
+        /// <summary>
+        /// Minimum X resolution for an image per Slack requirements (512 px)
+        /// </summary>
+        public static int MinX = 512;
+        
+        /// <summary>
+        /// Minimum Y resolution for an image per Slack requirements (512 px)
+        /// </summary>
+        public static int MinY = 512;
 
         /// <summary>
         /// Maximum X resolution for an image per Slack requirements (1024 px)
