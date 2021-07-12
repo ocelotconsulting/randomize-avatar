@@ -200,11 +200,22 @@ namespace OcelotConsulting.Avatars
                 form.Add("crop_x", crop_x.ToString("D"));
                 form.Add("crop_y", crop_y.ToString("D"));
 
+                // Initialize our multi-part content
+                var content = new MultipartFormDataContent();
+
+                // Add the form content
+                foreach(var kvp in form)
+                    content.Add(new StringContent(kvp.Value), kvp.Key);
+
+                // Add the file content
+                // Generate a random file name, but ensure we have a name of "image"
+                content.Add(new ByteArrayContent(PngImage), "image", $"{Guid.NewGuid()}.png");
+
                 // Form our HTTP request
                 // We use this so we can use Send() instead of PostAsync()
                 var request = new HttpRequestMessage(HttpMethod.Post, UpdateAvatar.SlackAPI)
                 {
-                    Content = new FormUrlEncodedContent(form)
+                    Content = content
                 };
 
                 // Perform the request
