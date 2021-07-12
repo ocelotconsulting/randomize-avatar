@@ -173,6 +173,12 @@ namespace OcelotConsulting.Avatars
             // Dispose of our old image
             image.Dispose();
 
+            // Make sure we have a valid image array
+            if (PngImage == null || PngImage.Length == 0)
+            {
+                throw new Exception("Unable to convert the image to a PNG.");
+            }
+
             // Our JSON object for later
             UsersSetPhotoResponse jsonResponse = null;
 
