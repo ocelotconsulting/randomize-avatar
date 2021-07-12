@@ -109,69 +109,70 @@ namespace OcelotConsulting.Avatars
             Image image;
             float scale = 1F;
             
-
-            using (var ms = new MemoryStream(RandomImage))
-            {
-                // Load the image from the memory stream copied from the bytes
-                image = Image.FromStream(ms);
-            }
-
-            // If we didn't have a valid image, that would throw an error
-            if (image.Width < UpdateAvatar.MinX || image.Height < UpdateAvatar.MinY)
-            {
-                // Need to scale up!
-                // Shamelessly stolen from: https://stackoverflow.com/a/10445101
-                scale = Math.Min(UpdateAvatar.MinX / image.Width, UpdateAvatar.MinY / image.Height);
-            }
-            else if (image.Width > UpdateAvatar.MaxX || image.Height > UpdateAvatar.MaxY)
-            {
-                // Need to scale down!
-                // Shamelessly stolen from: https://stackoverflow.com/a/10445101
-                scale = Math.Max(UpdateAvatar.MaxX / image.Width, UpdateAvatar.MaxY / image.Height);
-            }
-
-            // Do we need to scale?
-            if (scale != 1F)
-            {
-                // Shameless stolen from: https://stackoverflow.com/a/49395806
-                var scaleWidth  = (int)(image.Width  * scale);
-                var scaleHeight = (int)(image.Height * scale);
-                var scaledBitmap = new Bitmap(scaleWidth, scaleHeight);
-
-                Graphics graph = Graphics.FromImage(scaledBitmap);
-                graph.InterpolationMode = InterpolationMode.High;
-                graph.CompositingQuality = CompositingQuality.HighQuality;
-                graph.SmoothingMode = SmoothingMode.AntiAlias;
-                graph.FillRectangle(new SolidBrush(Color.Transparent), new RectangleF(0, 0, scaleWidth, scaleHeight));
-                graph.DrawImage(image, new Rectangle(0, 0 , scaleWidth, scaleHeight));
-
-                // Overwrite the image we have in memory
-                image = Image.FromHbitmap(scaledBitmap.GetHbitmap());
-
-                // Dispose of our resources
-                graph.Dispose();
-                scaledBitmap.Dispose();
-            }
-
             // Slack wants a square photo, so we will square it up from the top-left corner
-            int crop_w = Math.Min(image.Width, image.Height);
+            int crop_w = 0;
             int crop_x = 0;
             int crop_y = 0;
 
             // Now we have an image, let's copy it to a byte array of type PNG
             byte[] PngImage = null;
 
-            using (var ms = new MemoryStream())
+            using (var ms = new MemoryStream(RandomImage))
             {
-                // Save it to a memory stream
-                image.Save(ms, ImageFormat.Png);
+                // Load the image from the memory stream copied from the bytes
+                using (var image = Image.FromStream(ms))
+                {
+                    // If we didn't have a valid image, that would throw an error
+                    if (image.Width < UpdateAvatar.MinX || image.Height < UpdateAvatar.MinY)
+                    {
+                        // Need to scale up!
+                        // Shamelessly stolen from: https://stackoverflow.com/a/10445101
+                        scale = Math.Min(UpdateAvatar.MinX / image.Width, UpdateAvatar.MinY / image.Height);
+                    }
+                    else if (image.Width > UpdateAvatar.MaxX || image.Height > UpdateAvatar.MaxY)
+                    {
+                        // Need to scale down!
+                        // Shamelessly stolen from: https://stackoverflow.com/a/10445101
+                        scale = Math.Max(UpdateAvatar.MaxX / image.Width, UpdateAvatar.MaxY / image.Height);
+                    }
 
-                // Save the byte array
-                PngImage = ms.ToArray();
+                    // Do we need to scale?
+                    if (scale != 1F)
+                    {
+                        // Shameless stolen from: https://stackoverflow.com/a/49395806
+                        var scaleWidth = (int)(image.Width * scale);
+                        var scaleHeight = (int)(image.Height * scale);
+                        var scaledBitmap = new Bitmap(scaleWidth, scaleHeight);
+
+                        Graphics graph = Graphics.FromImage(scaledBitmap);
+                        graph.InterpolationMode = InterpolationMode.High;
+                        graph.CompositingQuality = CompositingQuality.HighQuality;
+                        graph.SmoothingMode = SmoothingMode.AntiAlias;
+                        graph.FillRectangle(new SolidBrush(Color.Transparent), new RectangleF(0, 0, scaleWidth, scaleHeight));
+                        graph.DrawImage(image, new Rectangle(0, 0, scaleWidth, scaleHeight));
+
+                        // Overwrite the image we have in memory
+                        image = Image.FromHbitmap(scaledBitmap.GetHbitmap());
+
+                        // Dispose of our resources
+                        graph.Dispose();
+                        scaledBitmap.Dispose();
+                    }
+
+                    // Slack wants a square photo, so we will square it up from the top-left corner
+                    crop_w = Math.Min(image.Width, image.Height);
+
+                    using (var saveStream = new MemoryStream())
+                    {
+                        // Save it to a memory stream
+                        // For this, the original stream must still be opened
+                        image.Save(saveStream, ImageFormat.Png);
+
+                        // Save the byte array
+                        PngImage = saveStream.ToArray();
+                    }
+                }
             }
-
-            // Dispose of our old image
-            image.Dispose();
 
             // Make sure we have a valid image array
             if (PngImage == null || PngImage.Length == 0)
