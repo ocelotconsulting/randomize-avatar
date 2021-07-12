@@ -6,6 +6,12 @@ using Microsoft.Extensions.Logging;
 // MemoryStream
 using System.IO;
 
+// Dictionary
+using System.Collections.Generic;
+
+// JSON Handling
+using System.Text.Json;
+
 // HTTP Client
 using System.Net.Http;
 
@@ -147,6 +153,11 @@ namespace OcelotConsulting.Avatars
                 scaledBitmap.Dispose();
             }
 
+            // Slack wants a square photo, so we will square it up from the top-left corner
+            int crop_w = Math.Min(image.Width, image.Height);
+            int crop_x = 0;
+            int crop_y = 0;
+
             // Now we have an image, let's copy it to a byte array of type PNG
             byte[] PngImage = null;
 
@@ -161,7 +172,85 @@ namespace OcelotConsulting.Avatars
 
             // Dispose of our old image
             image.Dispose();
+
+            // Our JSON object for later
+            UsersSetPhotoResponse jsonResponse = null;
+
+            // Attempt to send the request to Slack
+            using (var client = new HttpClient())
+            {
+                // Add our authorization token
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", SlackToken);
+
+                // Form data
+                // We have to send it as x-www-form-urlencoded, so we use a dictionary to build that
+                var form = new Dictionary<string, string>();
+
+                // Send numbers in a generic (no commas, periods, etc.) format
+                form.Add("crop_w", crop_w.ToString("D"));
+                form.Add("crop_x", crop_x.ToString("D"));
+                form.Add("crop_y", crop_y.ToString("D"));
+
+                // Form our HTTP request
+                // We use this so we can use Send() instead of PostAsync()
+                var request = new HttpRequestMessage(HttpMethod.Post, UpdateAvatar.SlackAPI)
+                {
+                    Content = new FormUrlEncodedContent(form)
+                };
+
+                // Perform the request
+                using (var response = client.Send(request))
+                {
+                    // Make sure we have a good response
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new HttpRequestException($"Unsuccessful response from Slack API: {response.StatusCode}");
+                    }
+
+                    // Get the contents
+                    var contents = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+
+                    // This should be valid JSON
+                    jsonResponse = JsonSerializer.Deserialize<UsersSetPhotoResponse>(contents);
+
+                    // If that throws an error we didn't have a valid object response
+                    // Check for a null response as well
+                    if (jsonResponse == null)
+                    {
+                        throw new HttpRequestException($"Invalid response format from Slack API: {contents}");
+                    }
+                }
+            }
+
+            // Now we can check for our error messages
+            if (!jsonResponse.ok)
+            {
+                // Give the specific error if possible
+                if (!string.IsNullOrEmpty(jsonResponse.error))
+                    throw new HttpRequestException($"Unsuccessful request with Slack API, see error message: {jsonResponse.error}");
+                    
+                // Otherwise, generic error
+                throw new HttpRequestException($"Unsuccessful request with Slack API and no error message returned.");
+            }
+
+            // All done!
         }
+    }
+
+    /// <summary>
+    /// This is the expected format of a response to the API per https://api.slack.com/methods/users.setPhoto
+    /// </summary>
+    public class UsersSetPhotoResponse
+    {
+        /// <summary>
+        /// <c>true</c> if the request was successful; otherwise, <c>false</c>
+        /// </summary>
+        public bool ok { get; set; }
+
+        /// <summary>
+        /// Optional string. Could be empty.
+        /// </summary>
+        public string error { get; set; } = string.Empty;
     }
 
     public class MyInfo
