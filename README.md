@@ -15,7 +15,7 @@ Slack works in an OAuth 2.0 setup where permissions are defined as scopes. For t
 1. Browse to [https://api.slack.com/apps](https://api.slack.com/apps)
 2. Click on "Create New App"
 3. Choose "From an app manifest" to continue
-4. Choose the appropriate workspace for this application, our sample app will be made in the Ocelot Consulting workspace
+4. Choose the appropriate workspace for this application
 5. Click Next
 6. Paste the contents of `slack-app/manifest.yml` into the `YAML` tab
 7. Click Next
