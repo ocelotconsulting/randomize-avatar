@@ -2,6 +2,12 @@
 
 This is a demo Azure Function application which will update a Slack avatar with a random image from [http://thispersondoesnotexist.com/](http://thispersondoesnotexist.com/).
 
+## Overall Requirements
+
+* Slack Workspace and Account
+* Azure Subscription
+* Sample code from branch `single-token-poc`
+
 ## Slack Requirements
 
 Slack has moved away from [legacy API Tokens](https://api.slack.com/legacy/custom-integrations/legacy-tokens) and requires developers to utilize a [Slack App](https://api.slack.com/start/planning) approach. A Slack App is setup in a specific Slack Workspace and can be [shared with other workspaces](https://api.slack.com/start/distributing/public), however for this demonstration we will only be focused on a personal installation in a single directory.
