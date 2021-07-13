@@ -46,6 +46,7 @@ You can utilize the portal to configure you're own Azure Function App, however w
 5. Paste the contents of `azure/functionapp.json` into the text box and click Save
 6. Click "Edit parameters"
 7. Paste the contents of `azure/functionapp.parameters.json` into the text box and click Save
+   * This step can be skipped if you wish to edit the parameters directly in the portal instead
 8. Change the values of the Name, Location, Hosting Plan Name, Storage Account Name, or another parameter as desired
 9. Click "Review + create"
 10. Confirm the parameters look correct and review the terms provided
