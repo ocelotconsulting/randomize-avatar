@@ -58,11 +58,6 @@ namespace OcelotConsulting.Avatars
         /// </summary>
         public static int MaxY = 1024;
 
-        /// <summary>
-        /// The name of the environment variable (app setting) that includes our Slack Token
-        /// </summary>
-        public static string SlackTokenSettingName = "SlackToken";
-
         [Function("UpdateAvatar")]
         public static void Run([TimerTrigger("0 0 * * * *")] MyInfo myTimer, FunctionContext context)
         {
@@ -73,18 +68,12 @@ namespace OcelotConsulting.Avatars
             // 2. Get the image
             // 3. Update the avatar
 
-            var SlackToken = System.Environment.GetEnvironmentVariable(UpdateAvatar.SlackTokenSettingName, EnvironmentVariableTarget.Process) ?? string.Empty;
-
-            // We have to have some value
-            if (string.IsNullOrEmpty(SlackToken))
-            {
-                throw new ArgumentNullException(SlackTokenSettingName);
-            }
+            var SlackToken = Settings.GetSetting(Settings.SlackTokenSettingName);
 
             // Verify this is a user token (must start with "xoxp-")
             if (!SlackToken.StartsWith("xoxp-", StringComparison.InvariantCultureIgnoreCase))
             {
-                throw new ArgumentException($"Provided token is not a User Token that starts with 'xoxp-'.", paramName: SlackTokenSettingName);
+                throw new ArgumentException($"Provided token is not a User Token that starts with 'xoxp-'.", paramName: Settings.SlackTokenSettingName);
             }
 
             // Get a random image, ensure it fits the format for Slack, and return a byte[] of the PNG contents
