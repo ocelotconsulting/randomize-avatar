@@ -91,7 +91,7 @@ There are many ways to deploy an Azure Function App. We are going to perform a m
 In testing, the "Test/Run" button was not always accessible. You can utilize the [manual run method](https://docs.microsoft.com/en-us/azure/azure-functions/functions-manually-run-non-http). Here is a sample cURL request:
 
 ```powershell
-curl --request POST -H 'x-functions-key:[KEY]' -H "Content-Type:application/json" --data "{}" 'http://[FUNCAPP_NAME].azurewebsites.net/admin/functions/UpdateAvatar'
+curl --request POST -H 'x-functions-key:[KEY]' -H "Content-Type:application/json" --data "{}" 'https://[FUNCAPP_NAME].azurewebsites.net/admin/functions/UpdateAvatar'
 ```
 
 ## Local Function App with HTTPS
