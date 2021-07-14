@@ -93,3 +93,12 @@ In testing, the "Test/Run" button was not always accessible. You can utilize the
 ```powershell
 curl --request POST -H 'x-functions-key:[KEY]' -H "Content-Type:application/json" --data "{}" 'http://[FUNCAPP_NAME].azurewebsites.net/admin/functions/UpdateAvatar'
 ```
+
+## Local Function App with HTTPS
+
+Run as an Administrator with PowerShell:
+
+```powershell
+$cert = New-SelfSignedCertificate -Subject localhost -DnsName localhost -FriendlyName "Functions Development" -KeyUsage DigitalSignature -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.1")
+Export-PfxCertificate -Cert $cert -FilePath certificate.pfx -Password (ConvertTo-SecureString -String 'fakecertificate' -Force -AsPlainText)
+```
