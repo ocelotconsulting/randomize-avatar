@@ -87,8 +87,23 @@ namespace OcelotConsulting.Avatars
                 throw new ArgumentException($"Provided token is not a User Token that starts with 'xoxp-'.", paramName: SlackTokenSettingName);
             }
 
-            // Where we will store our image
-            byte[] RandomImage = null;
+            // Get a random image, ensure it fits the format for Slack, and return a byte[] of the PNG contents
+            var PngImage = UpdateAvatar.FormatSlackAvatar(UpdateAvatar.GetRandomImage());
+
+            // Update the image
+            var jsonResponse = UpdateAvatar.UpdateSlackAvatar(SlackToken, PngImage);
+
+            // All done!
+        }
+
+        /// <summary>
+        /// Gets an image from our source and returns the <see cref="System.Byte[]"/> contents
+        /// </summary>
+        /// <returns><see cref="System.Byte[]"/> of an image</returns>
+        private static byte[] GetRandomImage()
+        {
+            // The image to return
+            byte[] returnImage = null;
 
             using (var client = new HttpClient())
             {
@@ -96,28 +111,33 @@ namespace OcelotConsulting.Avatars
                 var ctx = new CancellationTokenSource(30 * 1000);
 
                 // Perform the request
-                RandomImage = client.GetByteArrayAsync(UpdateAvatar.ImageSource, ctx.Token).GetAwaiter().GetResult();
+                returnImage = client.GetByteArrayAsync(UpdateAvatar.ImageSource, ctx.Token).GetAwaiter().GetResult();
 
                 // Check that we have a result
-                if (RandomImage == null || RandomImage.Length == 0)
+                if (returnImage == null || returnImage.Length == 0)
                 {
                     throw new Exception($"Unable to retrieve the random image.");
                 }
             }
 
+            return returnImage;
+        }
+
+        /// <summary>
+        /// Performs validation to ensure the image is the appropriate size for Slack avatars per https://api.slack.com/methods/users.setPhoto
+        /// </summary>
+        /// <param name="inputImage"><see cref="System.Byte[]"/> of an image</param>
+        /// <returns><see cref="System.Byte[]"/> of a validated image</returns>
+        private static byte[] FormatSlackAvatar(byte[] inputImage)
+        {
+            // The image to return
+            byte[] returnImage = null;
+
             // Check our image size
             Image image;
             float scale = 1F;
-            
-            // Slack wants a square photo, so we will square it up from the top-left corner
-            int crop_w = 0;
-            int crop_x = 0;
-            int crop_y = 0;
 
-            // Now we have an image, let's copy it to a byte array of type PNG
-            byte[] PngImage = null;
-
-            using (var ms = new MemoryStream(RandomImage))
+            using (var ms = new MemoryStream(inputImage))
             {
                 // Load the image from the memory stream copied from the bytes
                 image = Image.FromStream(ms);
@@ -159,9 +179,6 @@ namespace OcelotConsulting.Avatars
                     scaledBitmap.Dispose();
                 }
 
-                // Slack wants a square photo, so we will square it up from the top-left corner
-                crop_w = Math.Min(image.Width, image.Height);
-
                 using (var saveStream = new MemoryStream())
                 {
                     // Save it to a memory stream
@@ -169,7 +186,7 @@ namespace OcelotConsulting.Avatars
                     image.Save(saveStream, ImageFormat.Png);
 
                     // Save the byte array
-                    PngImage = saveStream.ToArray();
+                    returnImage = saveStream.ToArray();
                 }
 
                 // Dispose of our old image
@@ -177,11 +194,16 @@ namespace OcelotConsulting.Avatars
             }
 
             // Make sure we have a valid image array
-            if (PngImage == null || PngImage.Length == 0)
+            if (returnImage == null || returnImage.Length == 0)
             {
                 throw new Exception("Unable to convert the image to a PNG.");
             }
 
+            return returnImage;
+        }
+
+        private static UsersSetPhotoResponse UpdateSlackAvatar(string bearerToken, byte[] image)
+        {
             // Our JSON object for later
             UsersSetPhotoResponse jsonResponse = null;
 
@@ -189,27 +211,14 @@ namespace OcelotConsulting.Avatars
             using (var client = new HttpClient())
             {
                 // Add our authorization token
-                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", SlackToken);
-
-                // Form data
-                // We have to send it as x-www-form-urlencoded, so we use a dictionary to build that
-                var form = new Dictionary<string, string>();
-
-                // Send numbers in a generic (no commas, periods, etc.) format
-                form.Add("crop_w", crop_w.ToString("D"));
-                form.Add("crop_x", crop_x.ToString("D"));
-                form.Add("crop_y", crop_y.ToString("D"));
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", bearerToken);
 
                 // Initialize our multi-part content
                 var content = new MultipartFormDataContent();
 
-                // Add the form content
-                foreach(var kvp in form)
-                    content.Add(new StringContent(kvp.Value), kvp.Key);
-
                 // Add the file content
                 // Generate a random file name, but ensure we have a name of "image"
-                content.Add(new ByteArrayContent(PngImage), "image", $"{Guid.NewGuid()}.png");
+                content.Add(new ByteArrayContent(image), "image", $"{Guid.NewGuid()}.png");
 
                 // Form our HTTP request
                 // We use this so we can use Send() instead of PostAsync()
@@ -253,7 +262,7 @@ namespace OcelotConsulting.Avatars
                 throw new HttpRequestException($"Unsuccessful request with Slack API and no error message returned.");
             }
 
-            // All done!
+            return jsonResponse;
         }
     }
 
