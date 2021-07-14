@@ -32,12 +32,12 @@ namespace OcelotConsulting.Avatars
         /// <summary>
         /// The name of the environment variable (app setting) that includes our Slack Client ID
         /// </summary>
-        public static string SlackClientIdSettingName = "SlackClientId";
+        public static string SlackClientId = "SlackClientId";
 
         /// <summary>
         /// The name of the environment variable (app setting) that includes our Slack Token
         /// </summary>
-        public static string SlackTokenSettingName = "SlackToken";
+        public static string SlackToken = "SlackToken";
 
         /// <summary>
         /// A helper function to get our app settings as specified.

@@ -68,12 +68,12 @@ namespace OcelotConsulting.Avatars
             // 2. Get the image
             // 3. Update the avatar
 
-            var SlackToken = Settings.GetSetting(Settings.SlackTokenSettingName);
+            var SlackToken = Settings.GetSetting(Settings.SlackToken);
 
             // Verify this is a user token (must start with "xoxp-")
             if (!SlackToken.StartsWith("xoxp-", StringComparison.InvariantCultureIgnoreCase))
             {
-                throw new ArgumentException($"Provided token is not a User Token that starts with 'xoxp-'.", paramName: Settings.SlackTokenSettingName);
+                throw new ArgumentException($"Provided token is not a User Token that starts with 'xoxp-'.", paramName: Settings.SlackToken);
             }
 
             // Get a random image, ensure it fits the format for Slack, and return a byte[] of the PNG contents
