@@ -61,6 +61,17 @@
 			"options": {
 				"cwd": "${workspaceFolder}/bin/Debug/net5.0"
 			},
+			"command": "host start",
+			"isBackground": true,
+			"problemMatcher": "$func-dotnet-watch"
+		},
+		{
+			"label": "httpsfuncstart",
+			"type": "func",
+			"dependsOn": "clean",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
 			"command": "host start --useHttps --cert '${workspaceFolder}/fakecertificate.pfx' --password fakecertificate",
 			"isBackground": true,
 			"problemMatcher": "$func-dotnet-watch"
