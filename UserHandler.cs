@@ -42,7 +42,7 @@ namespace OcelotConsulting.Avatars
 
             // Get access to our table, if there are failures in creating or checking existence, it will error out
             var tableClient = UserHandler.GetTableClient();
-            
+
             // Create the user object
             // By using upsert below, we don't have to look for existing objects and differentiate between insert/update
             var user = new UserEntity(authedResponse.authed_user.id, authedResponse.team.id)
