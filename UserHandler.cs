@@ -57,6 +57,12 @@ namespace OcelotConsulting.Avatars
             return true;
         }
 
+        /// <summary>
+        /// The ability to update the Azure Table with the given <see cref="OcelotConsulting.Avatars.UserEntity"/>
+        /// </summary>
+        /// <param name="user"><see cref="OcelotConsulting.Avatars.UserEntity"/></param>
+        /// <param name="tableClient"><see cref="Azure.Data.Tables.TableClient"/></param>
+        /// <returns><c>true</c> on success; otherwise, <c>false</c></returns>
         public static bool UpdateUser(UserEntity user, TableClient? tableClient = null)
         {
             // Make sure weh have inputs
