@@ -59,7 +59,7 @@ namespace OcelotConsulting.Avatars
         public static int MaxY = 1024;
 
         [Function("UpdateAvatar")]
-        public static void Run([TimerTrigger("0 0 * * * *")] MyInfo myTimer, FunctionContext context)
+        public static void Run([TimerTrigger("0 0 * * * *", RunOnStartup = false)] MyInfo myTimer, FunctionContext context)
         {
             // Add back logging
             var logger = context.GetLogger("UpdateAvatar");
