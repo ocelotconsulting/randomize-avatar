@@ -57,6 +57,19 @@ namespace OcelotConsulting.Avatars
             return true;
         }
 
+        /// <summary>
+        /// Provide a list of users queried from the Table including those in an error state if requested
+        /// </summary>
+        /// <param name="includeErrors"><c>true</c> to include all users, even those in an error state (Default: <c>false</c>)</param>
+        /// <returns><see cref="System.Collections.Generic.List{T}"/> of <see cref="OcelotConsulting.Avatars.UserEntity"/> results</returns>
+        public static List<UserEntity> GetUsers(bool includeErrors = false)
+        {
+            // A basic LINQ expression makes this query very easy
+            return UserHandler.GetTableClient()
+                .Query<UserEntity>(a => includeErrors || a.valid)
+                .ToList();
+        }
+
         private static UserEntity? GetUser(string user_id, string team_id, TableClient? tableClient = null)
         {
             // Check that we have parametesr
