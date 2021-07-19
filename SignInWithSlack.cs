@@ -134,7 +134,8 @@ namespace OcelotConsulting.Avatars
             }
 
             // We have been provided a good response
-
+            // Add this user to our table
+            UserHandler.InsertOrUpdateUser(jsonResponse);
 
             // Deliver the response
             return req.CreateResponse(HttpStatusCode.OK);
@@ -150,6 +151,7 @@ namespace OcelotConsulting.Avatars
         public string error { get; set; } = string.Empty;
         public string? app_id { get; set; } = null;
         public OAuthV2AuthorizeAuthedUser? authed_user { get; set; } = null;
+        public OAuthV2AuthorizeTeam? team { get; set; } = null;
         public bool is_enterprise_install { get; set; } = false;
     }
 
@@ -162,6 +164,15 @@ namespace OcelotConsulting.Avatars
         public string scope { get; set; } = string.Empty;
         public string access_token { get; set; } = string.Empty;
         public string token_type { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// This is the expected format of a team to the API per https://api.slack.com/methods/oauth.v2.access
+    /// </summary>
+    public class OAuthV2AuthorizeTeam
+    {
+        public string id { get; set; } = string.Empty;
+        public string name { get; set; } = string.Empty;
     }
 }
 #nullable restore
