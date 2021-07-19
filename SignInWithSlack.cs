@@ -139,7 +139,7 @@ namespace OcelotConsulting.Avatars
 
             // Deliver the response
             // We will deep-link to our app's home
-            var destinationUrl = $"slack://app?team={jsonResponse.team.id}&id={jsonResponse.authed_user.id}&tab=home";
+            var destinationUrl = $"slack://app?team={jsonResponse.team.id}&id={jsonResponse.app_id}&tab=home";
 
             // Create our response structure
             var httpResponse = req.CreateResponse(HttpStatusCode.OK);
