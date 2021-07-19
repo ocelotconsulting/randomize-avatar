@@ -58,7 +58,7 @@ namespace OcelotConsulting.Avatars
         /// </summary>
         public static int MaxY = 1024;
 
-        //[Function("UpdateAvatar")]
+        [Function("UpdateAvatar")]
         public static void Run([TimerTrigger("0 0 * * * *")] MyInfo myTimer, FunctionContext context)
         {
             // Multi-User Order:
