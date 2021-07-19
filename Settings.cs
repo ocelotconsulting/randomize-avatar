@@ -45,6 +45,11 @@ namespace OcelotConsulting.Avatars
         public static string SlackToken = "SlackToken";
 
         /// <summary>
+        /// The name of the environment variable (app setting) that defines the Azure Table name for Users
+        /// </summary>
+        public static string UserTableName = "UserList";
+
+        /// <summary>
         /// A helper function to get our app settings as specified.
         /// </summary>
         /// <param name="settingName">The environment variable (app setting) name to look for.</param>
