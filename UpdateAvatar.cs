@@ -112,7 +112,7 @@ namespace OcelotConsulting.Avatars
                     // Verify this is a user token (must start with "xoxp-")
                     if (!SlackToken.StartsWith("xoxp-", StringComparison.InvariantCultureIgnoreCase))
                     {
-                        throw new ArgumentException($"Provided token is not a User Token that starts with 'xoxp-'.", paramName: Settings.SlackToken);
+                        throw new ArgumentException($"Provided token is not a User Token that starts with 'xoxp-'. User: {user.user_id}, Team: {user.team_id}");
                     }
 
                     // Get a random image, ensure it fits the format for Slack, and return a byte[] of the PNG contents

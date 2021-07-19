@@ -40,11 +40,6 @@ namespace OcelotConsulting.Avatars
         public static string SlackClientSecret = "SlackClientSecret";
 
         /// <summary>
-        /// The name of the environment variable (app setting) that includes our Slack Token
-        /// </summary>
-        public static string SlackToken = "SlackToken";
-
-        /// <summary>
         /// The name of the environment variable (app setting) that defines the Azure Table name for Users
         /// </summary>
         public static string UserTableName = "UserList";
