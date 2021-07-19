@@ -30,6 +30,11 @@ namespace OcelotConsulting.Avatars
 {
     public static class UserHandler
     {
+        /// <summary>
+        /// Insert a new <see cref="OcelotConsulting.Avatars.UserEntity"/> or update an existing one with the given information
+        /// </summary>
+        /// <param name="authedResponse">An <see cref="OcelotConsulting.Avatars.OAuthV2Authorize"/> response from <see cref="OcelotConsulting.Avatars.SignInWithSlackFunction.SlackCallback(Microsoft.Azure.Functions.Worker.Http.HttpRequestData, FunctionContext)"/></param>
+        /// <returns><c>true</c> on success; othewrise, <c>false</c></returns>
         public static bool InsertOrUpdateUser(OAuthV2Authorize authedResponse)
         {
             // Make sure we have a good response
@@ -52,9 +57,10 @@ namespace OcelotConsulting.Avatars
             };
 
             // Update an existing entity if it exists or insert a new one
-            tableClient.UpsertEntity<UserEntity>(user);
+            var resp = tableClient.UpsertEntity<UserEntity>(user);
 
-            return true;
+            // A valid status should be in the 2xx HTTP status codes
+            return resp.Status >= 200 && resp.Status <= 299;
         }
 
         /// <summary>
@@ -93,6 +99,13 @@ namespace OcelotConsulting.Avatars
                 .ToList();
         }
 
+        /// <summary>
+        /// Attempt to find a specific user with the given information
+        /// </summary>
+        /// <param name="user_id">The <see cref="OcelotConsulting.Avatars.OAuthV2AuthorizeAuthedUser.id"/> of the user</param>
+        /// <param name="team_id">The <see cref="OcelotConsulting.Avatars.OAuthV2AuthorizeTeam.id"/> of the user</param>
+        /// <param name="tableClient"><param name="tableClient"><see cref="Azure.Data.Tables.TableClient"/></param>
+        /// <returns>A <see cref="OcelotConsulting.Avatars.UserEntity"/>; otherwise, <c>null</c></returns>
         private static UserEntity? GetUser(string user_id, string team_id, TableClient? tableClient = null)
         {
             // Check that we have parametesr
