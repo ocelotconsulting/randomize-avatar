@@ -154,6 +154,59 @@ namespace OcelotConsulting.Avatars
     }
 
     /// <summary>
+    /// The Workspace Bot Entity object that defines our Bot record for a specific workspace
+    /// </summary>
+    public class WorkspaceBotEntity : ITableEntity
+    {
+        public string PartitionKey { get; set; } = string.Empty;
+        public string RowKey { get; set; } = string.Empty;
+        public DateTimeOffset? Timestamp { get; set; }
+        public ETag ETag { get; set; }
+
+        // Actual user properties we care about
+        /// <summary>
+        /// The RowKey defined by <see cref="OcelotConsulting.Avatars.OAuthV2Authorize.app_id"/>
+        /// </summary>
+        public string app_id { get => RowKey; set => RowKey = value; }
+
+        /// <summary>
+        /// The PartitionKey defined by <see cref="OcelotConsulting.Avatars.OAuthV2AuthorizeTeam.id"/>
+        /// </summary>
+        public string team_id { get => PartitionKey; set => PartitionKey = value; }
+
+        /// <summary>
+        /// The access token we use to operate on this user
+        /// </summary>
+        public string accessToken { get; set; } = string.Empty;
+
+        /// <summary>
+        /// The bot_user_id for this workspace
+        /// </summary>
+        public string botUserId { get; set; } = string.Empty;
+
+        /// <summary>
+        /// We will track if a user has thrown an error or not (so we can skip it later)
+        /// </summary>
+        public bool valid { get; set; } = true;
+
+        public WorkspaceBotEntity() { }
+
+        /// <summary>
+        /// A strongly-typed user object for our User Table
+        /// </summary>
+        /// <param name="app_id">The <see cref="OcelotConsulting.Avatars.OAuthV2Authorize.app_id"/> of the user</param>
+        /// <param name="team_id">The <see cref="OcelotConsulting.Avatars.OAuthV2AuthorizeTeam.id"/> of the user</param>
+        public WorkspaceBotEntity(string app_id, string team_id)
+        {
+            // We partition by team_id (one partition per team)
+            PartitionKey = team_id;
+
+            // Then our unique index per partition is our user
+            RowKey = app_id;
+        }
+    }
+
+    /// <summary>
     /// The User Entity object that defines our User Table
     /// </summary>
     public class UserEntity : ITableEntity
