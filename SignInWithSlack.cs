@@ -128,7 +128,7 @@ namespace OcelotConsulting.Avatars
             }
 
             // Verify we have a good response
-            if (!jsonResponse.ok)
+            if (jsonResponse == null || !jsonResponse.ok || jsonResponse.authed_user == null || jsonResponse.team == null)
             {
                 return req.CreateResponse(HttpStatusCode.InternalServerError);
             }
@@ -138,7 +138,16 @@ namespace OcelotConsulting.Avatars
             UserHandler.InsertOrUpdateUser(jsonResponse);
 
             // Deliver the response
-            return req.CreateResponse(HttpStatusCode.OK);
+            // We will deep-link to our app's home
+            var destinationUrl = $"slack://app?team={jsonResponse.team.id}&id={jsonResponse.authed_user.id}&tab=home";
+
+            // Create our response structure
+            var httpResponse = req.CreateResponse(HttpStatusCode.OK);
+
+            // A simple HTML body to be user friendly... sort of
+            httpResponse.WriteString($"<html><head><meta http-equiv='Refresh' content='0; URL={destinationUrl}' /><title>Randomize Avatar</title></head><body><p style='text-align: center;'>You've successfully logged into the Randomize Avatar app. <a href='{destinationUrl}'>Click here</a> to open Slack.</p></body></html>");
+
+            return httpResponse;
         }
     }
 
