@@ -52,7 +52,7 @@ namespace OcelotConsulting.Avatars
             var SlackClientId = Settings.GetSetting(Settings.SlackClientId);
 
             // We generate the destination URL here
-            var SlackURL = $"{SignInWithSlackFunction.SlackAuthorize}?user_scope=users.profile:write&client_id={SlackClientId}";
+            var SlackURL = $"{SignInWithSlackFunction.SlackAuthorize}?scope=chat:write&user_scope=users.profile:write&client_id={SlackClientId}";
 
             // Create the redirect response (Direct Install URL)
             var response = req.CreateResponse(HttpStatusCode.TemporaryRedirect);
@@ -162,6 +162,11 @@ namespace OcelotConsulting.Avatars
         public OAuthV2AuthorizeAuthedUser? authed_user { get; set; } = null;
         public OAuthV2AuthorizeTeam? team { get; set; } = null;
         public bool is_enterprise_install { get; set; } = false;
+
+        // Bot items
+        public string? access_token { get; set; } = null;
+        public string? token_type { get; set; } = null;
+        public string? bot_user_id { get; set; } = null;
     }
 
     /// <summary>
