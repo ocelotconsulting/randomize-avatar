@@ -135,7 +135,7 @@ namespace OcelotConsulting.Avatars
 
             // We have been provided a good response
             // Add this user to our table
-            UserHandler.InsertOrUpdateUser(jsonResponse);
+            TableHandler.InsertOrUpdateUser(jsonResponse);
 
             // Deliver the response
             // We will deep-link to our app's home

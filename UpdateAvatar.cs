@@ -73,7 +73,7 @@ namespace OcelotConsulting.Avatars
             var triggerTime = DateTimeOffset.UtcNow;
 
             // Get our user list
-            var userList = UserHandler.GetUsers();
+            var userList = TableHandler.GetUsers();
 
             // Figure out who we need to update
             // Our padding is +/- 10% of time (in case our timer is triggering early/late)
@@ -140,7 +140,7 @@ namespace OcelotConsulting.Avatars
                 // Update our user record if possible
                 try
                 {
-                    UserHandler.UpdateUser(user);
+                    TableHandler.UpdateUser(user);
                 }
                 catch { }
             }

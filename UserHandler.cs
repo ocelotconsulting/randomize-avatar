@@ -28,7 +28,7 @@ using System.Threading.Tasks;
 #nullable enable
 namespace OcelotConsulting.Avatars
 {
-    public static class UserHandler
+    public static class TableHandler
     {
         /// <summary>
         /// Insert a new <see cref="OcelotConsulting.Avatars.UserEntity"/> or update an existing one with the given information
@@ -46,7 +46,7 @@ namespace OcelotConsulting.Avatars
                 throw new Exception($"The provided authenticated response is not valid.");
 
             // Get access to our table, if there are failures in creating or checking existence, it will error out
-            var tableClient = UserHandler.GetTableClient();
+            var tableClient = TableHandler.GetTableClient();
 
             // Create the user object
             // By using upsert below, we don't have to look for existing objects and differentiate between insert/update
@@ -77,7 +77,7 @@ namespace OcelotConsulting.Avatars
 
             // Get a table client if we don't have one already
             if (tableClient == null)
-                tableClient = UserHandler.GetTableClient();
+                tableClient = TableHandler.GetTableClient();
 
             // Update an existing entity if it exists
             var resp = tableClient.UpsertEntity<UserEntity>(user);
@@ -94,7 +94,7 @@ namespace OcelotConsulting.Avatars
         public static List<UserEntity> GetUsers(bool includeErrors = false)
         {
             // A basic LINQ expression makes this query very easy
-            return UserHandler.GetTableClient()
+            return TableHandler.GetTableClient()
                 .Query<UserEntity>(a => includeErrors || a.valid)
                 .ToList();
         }
@@ -146,7 +146,7 @@ namespace OcelotConsulting.Avatars
             var tableName = Settings.GetSetting(Settings.UserTableName);
 
             // We also double check the table exists
-            var tableServiceClient = UserHandler.GetTableServiceClient();
+            var tableServiceClient = TableHandler.GetTableServiceClient();
             tableServiceClient.CreateTableIfNotExists(tableName);
 
             return tableServiceClient.GetTableClient(tableName);
