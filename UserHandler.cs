@@ -57,7 +57,7 @@ namespace OcelotConsulting.Avatars
             return true;
         }
 
-        public static bool UpdateUser(UserEntity user, TableClient tableClient = null)
+        public static bool UpdateUser(UserEntity user, TableClient? tableClient = null)
         {
             // Make sure weh have inputs
             if (user == null)
