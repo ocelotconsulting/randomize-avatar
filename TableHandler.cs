@@ -64,6 +64,40 @@ namespace OcelotConsulting.Avatars
         }
 
         /// <summary>
+        /// Insert a new <see cref="OcelotConsulting.Avatars.WorkspaceBotEntity"/> or update an existing one with the given information
+        /// </summary>
+        /// <param name="authedResponse">An <see cref="OcelotConsulting.Avatars.OAuthV2Authorize"/> response from <see cref="OcelotConsulting.Avatars.SignInWithSlackFunction.SlackCallback(Microsoft.Azure.Functions.Worker.Http.HttpRequestData, FunctionContext)"/></param>
+        /// <returns><c>true</c> on success; othewrise, <c>false</c></returns>
+        public static bool InsertOrUpdateWorkspaceBot(OAuthV2Authorize authedResponse)
+        {
+            // Make sure we have a good response
+            if (authedResponse == null)
+                throw new ArgumentNullException(paramName: nameof(authedResponse));
+
+            if (!authedResponse.ok || authedResponse.access_token == null || authedResponse.bot_user_id == null || authedResponse.team == null || authedResponse.app_id == null
+                || string.IsNullOrEmpty(authedResponse.access_token) || string.IsNullOrEmpty(authedResponse.bot_user_id) || string.IsNullOrEmpty(authedResponse.team.id) || string.IsNullOrEmpty(authedResponse.app_id))
+                throw new Exception($"The provided authenticated response is not valid.");
+
+            // Get access to our table, if there are failures in creating or checking existence, it will error out
+            var tableClient = TableHandler.GetTableClient();
+
+            // Create the user object
+            // By using upsert below, we don't have to look for existing objects and differentiate between insert/update
+            var botObj = new WorkspaceBotEntity(authedResponse.app_id, authedResponse.team.id)
+            {
+                valid = true,
+                accessToken = authedResponse.access_token,
+                botUserId = authedResponse.bot_user_id
+            };
+
+            // Update an existing entity if it exists or insert a new one
+            var resp = tableClient.UpsertEntity<WorkspaceBotEntity>(botObj);
+
+            // A valid status should be in the 2xx HTTP status codes
+            return resp.Status >= 200 && resp.Status <= 299;
+        }
+
+        /// <summary>
         /// The ability to update the Azure Table with the given <see cref="OcelotConsulting.Avatars.UserEntity"/>
         /// </summary>
         /// <param name="user"><see cref="OcelotConsulting.Avatars.UserEntity"/></param>
