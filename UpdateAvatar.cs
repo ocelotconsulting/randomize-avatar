@@ -58,29 +58,86 @@ namespace OcelotConsulting.Avatars
         /// </summary>
         public static int MaxY = 1024;
 
-        [Function("UpdateAvatar")]
+        //[Function("UpdateAvatar")]
         public static void Run([TimerTrigger("0 0 * * * *")] MyInfo myTimer, FunctionContext context)
         {
-            var logger = context.GetLogger("UpdateAvatar");
+            // Multi-User Order:
+            // 1. Query the table for all users not in an error state
+            // 2. Go through each user and check if it is time to update again
+            // 3. Perform the updates!
 
-            // Order:
-            // 1. Get our settings to connect to Slack
-            // 2. Get the image
-            // 3. Update the avatar
+            // Save our trigger time so we do our math off this
+            var triggerTime = DateTimeOffset.UtcNow;
 
-            var SlackToken = Settings.GetSetting(Settings.SlackToken);
+            // Get our user list
+            var userList = UserHandler.GetUsers();
 
-            // Verify this is a user token (must start with "xoxp-")
-            if (!SlackToken.StartsWith("xoxp-", StringComparison.InvariantCultureIgnoreCase))
+            // Figure out who we need to update
+            // Our padding is +/- 10% of time (in case our timer is triggering early/late)
+            var usersToUpdate = new List<UserEntity>();
+
+            foreach(var user in userList)
             {
-                throw new ArgumentException($"Provided token is not a User Token that starts with 'xoxp-'.", paramName: Settings.SlackToken);
+                // First time we're updating
+                if (user.LastAvatarChange == null)
+                {
+                    usersToUpdate.Add(user);
+                }
+                else
+                {
+                    // MATH!
+                    var minSeconds = user.UpdateFrequencySeconds * 0.9;
+                    var maxSeconds = user.UpdateFrequencySeconds * 1.1;
+
+                    // Get our start and stop times
+                    DateTimeOffset rangeStart = user.LastAvatarChange.Value.AddSeconds(minSeconds);
+                    DateTimeOffset rangeEnd = user.LastAvatarChange.Value.AddSeconds(maxSeconds);
+
+                    // If this users falls inside our range, we update them
+                    if (rangeStart <= triggerTime && triggerTime <= rangeEnd)
+                    {
+                        usersToUpdate.Add(user);
+                    }
+                }
             }
 
-            // Get a random image, ensure it fits the format for Slack, and return a byte[] of the PNG contents
-            var PngImage = UpdateAvatar.FormatSlackAvatar(UpdateAvatar.GetRandomImage());
+            // Now we have a list of users to operate on, let's perform the updates
+            foreach (var user in usersToUpdate)
+            {
+                // We put a try/catch block here because we don't want one user's failure to interfere with someone else
+                try
+                {
+                    var SlackToken = user.accessToken;
 
-            // Update the image
-            var jsonResponse = UpdateAvatar.UpdateSlackAvatar(SlackToken, PngImage);
+                    // Verify this is a user token (must start with "xoxp-")
+                    if (!SlackToken.StartsWith("xoxp-", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        throw new ArgumentException($"Provided token is not a User Token that starts with 'xoxp-'.", paramName: Settings.SlackToken);
+                    }
+
+                    // Get a random image, ensure it fits the format for Slack, and return a byte[] of the PNG contents
+                    var PngImage = UpdateAvatar.FormatSlackAvatar(UpdateAvatar.GetRandomImage());
+
+                    // Update the image
+                    var jsonResponse = UpdateAvatar.UpdateSlackAvatar(SlackToken, PngImage);
+
+                    if (!jsonResponse.ok)
+                        throw new Exception();
+
+                    // We had a good update, need to change their timestamp
+                    user.LastAvatarChange = DateTimeOffset.UtcNow;
+                } catch {
+                    // We will set this user to an error state
+                    user.valid = false;
+                }
+
+                // Update our user record if possible
+                try
+                {
+                    UserHandler.UpdateUser(user);
+                }
+                catch { }
+            }
 
             // All done!
         }
