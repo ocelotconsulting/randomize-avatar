@@ -61,6 +61,9 @@ namespace OcelotConsulting.Avatars
         [Function("UpdateAvatar")]
         public static void Run([TimerTrigger("0 0 * * * *")] MyInfo myTimer, FunctionContext context)
         {
+            // Add back logging
+            var logger = context.GetLogger("UpdateAvatar");
+
             // Multi-User Order:
             // 1. Query the table for all users not in an error state
             // 2. Go through each user and check if it is time to update again
@@ -126,9 +129,12 @@ namespace OcelotConsulting.Avatars
 
                     // We had a good update, need to change their timestamp
                     user.LastAvatarChange = DateTimeOffset.UtcNow;
-                } catch {
+                } catch(Exception e) {
                     // We will set this user to an error state
                     user.valid = false;
+
+                    // Log this for later in case we need it
+                    logger.LogError(e, "");
                 }
 
                 // Update our user record if possible
