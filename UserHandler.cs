@@ -57,6 +57,23 @@ namespace OcelotConsulting.Avatars
             return true;
         }
 
+        public static bool UpdateUser(UserEntity user, TableClient tableClient = null)
+        {
+            // Make sure weh have inputs
+            if (user == null)
+                throw new ArgumentNullException(paramName: nameof(user));
+
+            // Get a table client if we don't have one already
+            if (tableClient == null)
+                tableClient = UserHandler.GetTableClient();
+
+            // Update an existing entity if it exists
+            var resp = tableClient.UpsertEntity<UserEntity>(user);
+
+            // A valid status should be in the 2xx HTTP status codes
+            return resp.Status >= 200 && resp.Status <= 299;
+        }
+
         /// <summary>
         /// Provide a list of users queried from the Table including those in an error state if requested
         /// </summary>
