@@ -46,7 +46,7 @@ namespace OcelotConsulting.Avatars
                 throw new Exception($"The provided authenticated response is not valid.");
 
             // Get access to our table, if there are failures in creating or checking existence, it will error out
-            var tableClient = TableHandler.GetTableClient();
+            var tableClient = TableHandler.GetTableClient(Settings.GetSetting(Settings.UserTableName));
 
             // Create the user object
             // By using upsert below, we don't have to look for existing objects and differentiate between insert/update
@@ -79,7 +79,7 @@ namespace OcelotConsulting.Avatars
                 throw new Exception($"The provided authenticated response is not valid.");
 
             // Get access to our table, if there are failures in creating or checking existence, it will error out
-            var tableClient = TableHandler.GetTableClient();
+            var tableClient = TableHandler.GetTableClient(Settings.GetSetting(Settings.WorkspaceTableName));
 
             // Create the user object
             // By using upsert below, we don't have to look for existing objects and differentiate between insert/update
@@ -111,7 +111,7 @@ namespace OcelotConsulting.Avatars
 
             // Get a table client if we don't have one already
             if (tableClient == null)
-                tableClient = TableHandler.GetTableClient();
+                tableClient = TableHandler.GetTableClient(Settings.GetSetting(Settings.UserTableName));
 
             // Update an existing entity if it exists
             var resp = tableClient.UpsertEntity<UserEntity>(user);
@@ -128,7 +128,7 @@ namespace OcelotConsulting.Avatars
         public static List<UserEntity> GetUsers(bool includeErrors = false)
         {
             // A basic LINQ expression makes this query very easy
-            return TableHandler.GetTableClient()
+            return TableHandler.GetTableClient(Settings.GetSetting(Settings.UserTableName))
                 .Query<UserEntity>(a => includeErrors || a.valid)
                 .ToList();
         }
@@ -151,7 +151,7 @@ namespace OcelotConsulting.Avatars
 
             // Get a table client if we don't have one already
             if (tableClient == null)
-                tableClient = GetTableClient();
+                tableClient = GetTableClient(Settings.GetSetting(Settings.UserTableName));
 
             // Now try to query for the user
             // By using the strongly-typed CreateQueryFilter, we can use LINQ expressions to make this easier
@@ -173,11 +173,12 @@ namespace OcelotConsulting.Avatars
         /// Returns the appropriate <see cref="Azure.Data.Tables.TableClient"/>
         /// </summary>
         /// <returns><see cref="Azure.Data.Tables.TableClient"/></returns>
-        private static TableClient GetTableClient()
+        private static TableClient GetTableClient(string? tableName = null)
         {
             // Gets the TableServiceClient and will create the appropriate client
             // information for the individual TableClient
-            var tableName = Settings.GetSetting(Settings.UserTableName);
+            if (string.IsNullOrEmpty(tableName))
+                tableName = Settings.GetSetting(Settings.UserTableName);
 
             // We also double check the table exists
             var tableServiceClient = TableHandler.GetTableServiceClient();
