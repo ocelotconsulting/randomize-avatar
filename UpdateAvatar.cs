@@ -77,7 +77,7 @@ namespace OcelotConsulting.Avatars
             logger.LogInformation($"Count retrieved from table: {userList.Count}");
 
             // Figure out who we need to update
-            // Our padding is +/- 10% of time (in case our timer is triggering early/late)
+            // Our padding is +/- 5 minutes in case our trigger is running late/early
             var usersToUpdate = new List<UserEntity>();
 
             foreach(var user in userList)
@@ -90,13 +90,10 @@ namespace OcelotConsulting.Avatars
                 }
                 else
                 {
-                    // MATH!
-                    var minSeconds = user.UpdateFrequencySeconds * 0.9;
-                    var maxSeconds = user.UpdateFrequencySeconds * 1.1;
-
                     // Get our start and stop times
-                    DateTimeOffset rangeStart = user.LastAvatarChange.Value.AddSeconds(minSeconds);
-                    DateTimeOffset rangeEnd = user.LastAvatarChange.Value.AddSeconds(maxSeconds);
+                    var nextTrigger = user.LastAvatarChange.Value.AddSeconds(user.UpdateFrequencySeconds);
+                    var rangeStart = nextTrigger.AddMinutes(-5);
+                    var rangeEnd = nextTrigger.AddMinutes(5);
 
                     // If this users falls inside our range OR if we have missed the range entirely, we update them
                     if (rangeEnd < triggerTime || (rangeStart <= triggerTime && triggerTime <= rangeEnd))
