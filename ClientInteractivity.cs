@@ -107,18 +107,18 @@ namespace OcelotConsulting.Avatars
             }
 
             // Replace our option list
-            jsonBody.Replace("{OPTION_LIST}", string.Join(", ", options));
+            jsonBody = jsonBody.Replace("{OPTION_LIST}", string.Join(", ", options.Select(a => a.Value)));
 
             // Replace our initial option
             if (options.ContainsKey(user.UpdateFrequencySeconds))
             {
                 // Replace our initial option
-                jsonBody.Replace("{INITIAL_OPTION}", options[user.UpdateFrequencySeconds]);
+                jsonBody = jsonBody.Replace("{INITIAL_OPTION}", options[user.UpdateFrequencySeconds]);
             }
             else
             {
                 // Replace our initial option with a blank object
-                jsonBody.Replace("{INITIAL_OPTION}", "{}");
+                jsonBody = jsonBody.Replace("{INITIAL_OPTION}", "{}");
             }
 
             using(var client = new HttpClient())
@@ -156,7 +156,7 @@ namespace OcelotConsulting.Avatars
             }
 
             // Replace the value
-            jsonBody = jsonBody.Replace("{OPTION_VALUE}", value.ToString("F"));
+            jsonBody = jsonBody.Replace("{OPTION_VALUE}", value.ToString("D"));
 
             // Replace the user-friendly string
             jsonBody = jsonBody.Replace("{OPTION_TEXT}", option);
