@@ -74,6 +74,7 @@ namespace OcelotConsulting.Avatars
 
             // Get our user list
             var userList = TableHandler.GetUsers();
+            logger.LogInformation($"Count retrieved from table: {userList.Count}");
 
             // Figure out who we need to update
             // Our padding is +/- 10% of time (in case our timer is triggering early/late)
@@ -97,14 +98,16 @@ namespace OcelotConsulting.Avatars
                     DateTimeOffset rangeStart = user.LastAvatarChange.Value.AddSeconds(minSeconds);
                     DateTimeOffset rangeEnd = user.LastAvatarChange.Value.AddSeconds(maxSeconds);
 
-                    // If this users falls inside our range, we update them
-                    if (rangeStart <= triggerTime && triggerTime <= rangeEnd)
+                    // If this users falls inside our range OR if we have missed the range entirely, we update them
+                    if (rangeEnd < triggerTime || (rangeStart <= triggerTime && triggerTime <= rangeEnd))
                     {
                         logger.LogInformation($"Timer triggered for '{user.user_id}' on team '{user.team_id}'");
                         usersToUpdate.Add(user);
                     }
                 }
             }
+            
+            logger.LogInformation($"Count to update: {usersToUpdate.Count}");
 
             // Now we have a list of users to operate on, let's perform the updates
             foreach (var user in usersToUpdate)
