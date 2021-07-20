@@ -84,6 +84,7 @@ namespace OcelotConsulting.Avatars
                 // First time we're updating
                 if (user.LastAvatarChange == null)
                 {
+                    logger.LogInformation($"First time run for '{user.user_id}' on team '{user.team_id}'");
                     usersToUpdate.Add(user);
                 }
                 else
@@ -99,6 +100,7 @@ namespace OcelotConsulting.Avatars
                     // If this users falls inside our range, we update them
                     if (rangeStart <= triggerTime && triggerTime <= rangeEnd)
                     {
+                        logger.LogInformation($"Timer triggered for '{user.user_id}' on team '{user.team_id}'");
                         usersToUpdate.Add(user);
                     }
                 }
@@ -129,12 +131,14 @@ namespace OcelotConsulting.Avatars
 
                     // We had a good update, need to change their timestamp
                     user.LastAvatarChange = DateTimeOffset.UtcNow;
+                    
+                    logger.LogInformation($"Updated avatar successfully for '{user.user_id}' on team '{user.team_id}'");
                 } catch(Exception e) {
                     // We will set this user to an error state
                     user.valid = false;
 
                     // Log this for later in case we need it
-                    logger.LogError(e, "");
+                    logger.LogError(e, $"Failed to update avatar for '{user.user_id}' on team '{user.team_id}'");
                 }
 
                 // Update our user record if possible
