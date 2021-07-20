@@ -128,7 +128,7 @@ namespace OcelotConsulting.Avatars
             }
 
             // Verify we have a good response
-            if (jsonResponse == null || !jsonResponse.ok || jsonResponse.authed_user == null || jsonResponse.team == null)
+            if (jsonResponse == null || !jsonResponse.ok || jsonResponse.access_token == null || jsonResponse.authed_user == null || jsonResponse.team == null)
             {
                 return req.CreateResponse(HttpStatusCode.InternalServerError);
             }
@@ -136,6 +136,10 @@ namespace OcelotConsulting.Avatars
             // We have been provided a good response
             // Add this user to our table
             TableHandler.InsertOrUpdateUser(jsonResponse);
+
+            // Now that we're in a workspace (this may or may not be our first time), we should update our home app
+            // This can be done in the background
+            Task.Run(async () => await ClientInteractivity.UpdateHomeTab(jsonResponse.access_token, jsonResponse.authed_user.id));
 
             // Deliver the response
             // We will deep-link to our app's home

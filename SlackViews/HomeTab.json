@@ -1,0 +1,100 @@
+{
+	"user_id": "{USER_ID}",
+	"view": {
+		"type": "home",
+		"blocks": [
+			{
+				"type": "section",
+				"text": {
+					"type": "mrkdwn",
+					"text": "You can customize the settings for your random avatar here."
+				}
+			},
+			{
+				"type": "divider"
+			},
+			{
+				"type": "input",
+				"element": {
+					"type": "static_select",
+					"placeholder": {
+						"type": "plain_text",
+						"text": "Select an item",
+						"emoji": true
+					},
+					"options": [
+						{
+							"text": {
+								"type": "plain_text",
+								"text": "Every Hour",
+								"emoji": true
+							},
+							"value": "3600"
+						},
+						{
+							"text": {
+								"type": "plain_text",
+								"text": "Every 2 Hours",
+								"emoji": true
+							},
+							"value": "7200"
+						},
+						{
+							"text": {
+								"type": "plain_text",
+								"text": "Every 4 Hours",
+								"emoji": true
+							},
+							"value": "14400"
+						},
+						{
+							"text": {
+								"type": "plain_text",
+								"text": "Every 8 Hours",
+								"emoji": true
+							},
+							"value": "28800"
+						},
+						{
+							"text": {
+								"type": "plain_text",
+								"text": "Every 12 Hours",
+								"emoji": true
+							},
+							"value": "43200"
+						},
+						{
+							"text": {
+								"type": "plain_text",
+								"text": "Every Day",
+								"emoji": true
+							},
+							"value": "86400"
+						}
+					],
+					"action_id": "static_select-action"
+				},
+				"label": {
+					"type": "plain_text",
+					"text": "Update Frequency",
+					"emoji": false
+				}
+			},
+			{
+				"type": "actions",
+				"elements": [
+					{
+						"type": "button",
+						"text": {
+							"type": "plain_text",
+							"text": "Save",
+							"emoji": true
+						},
+						"value": "Save",
+						"action_id": "saveButton"
+					}
+				]
+			}
+		]
+	}
+}
