@@ -79,21 +79,6 @@
 					"text": "Update Frequency",
 					"emoji": false
 				}
-			},
-			{
-				"type": "actions",
-				"elements": [
-					{
-						"type": "button",
-						"text": {
-							"type": "plain_text",
-							"text": "Save",
-							"emoji": true
-						},
-						"value": "Save",
-						"action_id": "saveButton"
-					}
-				]
 			}
 		]
 	}
