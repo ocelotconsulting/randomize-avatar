@@ -140,7 +140,7 @@ namespace OcelotConsulting.Avatars
             // Save this bot information
             TableHandler.InsertOrUpdateWorkspaceBot(jsonResponse);
 
-            // Now that we're in a workspace (this may or may not be our first time), we should update our home app
+            // Update our home app for this user
             // This can be done in the background
             Task.Run(async () => await ClientInteractivity.UpdateHomeTab(jsonResponse.access_token, jsonResponse.authed_user.id));
 
