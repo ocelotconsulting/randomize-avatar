@@ -121,6 +121,33 @@ namespace OcelotConsulting.Avatars
                 jsonBody = jsonBody.Replace("{INITIAL_OPTION}", "{}");
             }
 
+            // Replace our last update string
+            if (!user.LastAvatarChange.HasValue)
+            {
+                jsonBody = jsonBody.Replace("{LAST_UPDATE}", "Never");
+            }
+            else
+            {
+                jsonBody = jsonBody.Replace("{LAST_UPDATE}", string.Concat("<!date^", user.LastAvatarChange.Value.ToUnixTimeSeconds().ToString("D"), "^{date_short_pretty} {time}|Never>"));
+            }
+
+            // Replace our next update string
+            DateTimeOffset nextRuntime = DateTimeOffset.UtcNow;
+            if (user.LastAvatarChange.HasValue)
+            {
+                // Get the last time it was changed
+                nextRuntime = user.LastAvatarChange.Value;
+
+                // Add the frequency onto it
+                nextRuntime = nextRuntime.AddSeconds(user.UpdateFrequencySeconds);
+            }
+
+            // Now we find the next hour rotation
+            nextRuntime = ClientInteractivity.FindNextHour(nextRuntime);
+
+            // Do the actual replacement
+            jsonBody = jsonBody.Replace("{NEXT_UPDATE}", string.Concat("<!date^", nextRuntime.ToUnixTimeSeconds().ToString("D"), "^{date_short_pretty} {time}|Unknown>"));
+
             using(var client = new HttpClient())
             {
                 // Set our Bearer header
@@ -132,6 +159,20 @@ namespace OcelotConsulting.Avatars
                 // Send the content
                 await client.PostAsync("https://slack.com/api/views.publish", content);
             }
+        }
+
+        /// <summary>
+        /// Figure out the next time we will run based on the hourly schedule
+        /// </summary>
+        /// <param name="current">The time to work off from</param>
+        /// <returns>The <see cref="System.DateTimeOffset"/> object of the next runtime</returns>
+        private static DateTimeOffset FindNextHour(DateTimeOffset current)
+        {
+            // Get the date information out of our current object
+            var retDT = new DateTimeOffset(current.Year, current.Month, current.Day, current.Hour, 0, 0, 0, current.Offset);
+
+            // Bump up to the next hour
+            return retDT.AddHours(1);
         }
 
         /// <summary>
@@ -232,6 +273,9 @@ namespace OcelotConsulting.Avatars
 
                     // Perform the update (background thread)
                     TableHandler.UpdateUser(user);
+
+                    // Update the Home tab
+                    await ClientInteractivity.UpdateHomeTab(user.user_id, user.team_id);
                 }
             }
 

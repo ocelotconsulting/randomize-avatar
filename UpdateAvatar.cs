@@ -145,6 +145,9 @@ namespace OcelotConsulting.Avatars
                 try
                 {
                     TableHandler.UpdateUser(user);
+
+                    // Update our Home Tab information
+                    ClientInteractivity.UpdateHomeTab(user.user_id, user.team_id).ConfigureAwait(false);
                 }
                 catch { }
             }

@@ -18,6 +18,18 @@
 				"elements": [
 					{
 						"type": "mrkdwn",
+						"text": "Last Updated: {LAST_UPDATE}\nNext Update (Estimated): {NEXT_UPDATE}"
+					}
+				]
+			},
+			{
+				"type": "divider"
+			},
+			{
+				"type": "context",
+				"elements": [
+					{
+						"type": "mrkdwn",
 						"text": "*Update Frequency*\nAvatars are changed at the top of every hour."
 					}
 				]
