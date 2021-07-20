@@ -187,6 +187,54 @@ namespace OcelotConsulting.Avatars
             if (string.IsNullOrEmpty(payloadString))
                 return req.CreateResponse(HttpStatusCode.InternalServerError);
 
+            // The payload comes in as a URL Encoded body
+            var payloadQuery = HttpUtility.ParseQueryString(payloadString);
+
+            // Make sure we got "payload"
+            if (!payloadQuery.AllKeys.Contains("payload"))
+                return req.CreateResponse(HttpStatusCode.InternalServerError);
+
+            // Attempt to parse this payload and confirm it is what we want
+            var payload = JsonSerializer.Deserialize<BlockActionPayload>(payloadQuery.Get("payload") ?? string.Empty);
+
+            // Initial checks
+            if (payload == null || !string.Equals("block_actions", payload.type, StringComparison.InvariantCultureIgnoreCase) || payload.actions.Count == 0)
+                return req.CreateResponse(HttpStatusCode.InternalServerError);
+
+            // Find the action we need to look for (identified by the action_id)
+            var action = payload.actions.FirstOrDefault(a => a.action_id == "static_select-action");
+
+            if (action == default(Action))
+                return req.CreateResponse(HttpStatusCode.InternalServerError);
+
+            // Now we have a value to update
+            // Make sure we have good values
+            if (string.IsNullOrEmpty(payload.user.id) || string.IsNullOrEmpty(payload.user.team_id) || string.IsNullOrEmpty(action.selected_option.value))
+                return req.CreateResponse(HttpStatusCode.InternalServerError);
+
+            // Get our user object
+            var user = TableHandler.GetUser(payload.user.id, payload.user.team_id);
+
+            if (user == default(UserEntity))
+                return req.CreateResponse(HttpStatusCode.InternalServerError);
+
+            // Get our current frequency
+            int newFrequency;
+
+            if (Int32.TryParse(action.selected_option.value, out newFrequency))
+            {
+                // We were able to parse this
+                // Ensure it is a valid option
+                if (ClientInteractivity.FrequencyOptionsDict.ContainsKey(newFrequency))
+                {
+                    // We can update our user
+                    user.UpdateFrequencySeconds = newFrequency;
+
+                    // Perform the update (background thread)
+                    TableHandler.UpdateUser(user);
+                }
+            }
+
             // Clear our with a good response
             return req.CreateResponse(HttpStatusCode.OK);
         }
@@ -198,8 +246,8 @@ namespace OcelotConsulting.Avatars
     public class BlockActionPayload
     {
         public string type { get; set; } = string.Empty;
-        public OAuthV2AuthorizeTeam? team { get; set; } = null;
-        public OAuthV2AuthorizeAuthedUser? user { get; set; } = null;
+        public OAuthV2AuthorizeTeam team { get; set; } = new OAuthV2AuthorizeTeam();
+        public OAuthV2AuthorizeAuthedUser user { get; set; } = new OAuthV2AuthorizeAuthedUser();
 
         public string api_app_id { get; set; } = string.Empty;
         public string token { get; set; } = string.Empty;
@@ -219,6 +267,15 @@ namespace OcelotConsulting.Avatars
         public string value { get; set; } = string.Empty;
         public string type { get; set; } = string.Empty;
         public string action_ts { get; set; } = string.Empty;
+        public SelectedAction selected_option { get; set; } = new SelectedAction();
+    }
+
+    /// <summary>
+    /// This is the expected format of a selected_option item
+    /// </summary>
+    public class SelectedAction
+    {
+        public string value { get; set; } = string.Empty;
     }
 }
 #nullable restore
