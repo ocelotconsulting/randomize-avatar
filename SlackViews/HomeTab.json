@@ -14,25 +14,31 @@
 				"type": "divider"
 			},
 			{
-				"type": "input",
-				"element": {
-					"type": "static_select",
-					"placeholder": {
-						"type": "plain_text",
-						"text": "Select an item",
-						"emoji": true
-					},
-					"initial_option": {INITIAL_OPTION},
-					"options": [
-						{OPTION_LIST}
-					],
-					"action_id": "static_select-action"
-				},
-				"label": {
-					"type": "plain_text",
-					"text": "Update Frequency",
-					"emoji": false
-				}
+				"type": "context",
+				"elements": [
+					{
+						"type": "mrkdwn",
+						"text": "*Update Frequency*\nAvatars are changed at the top of every hour."
+					}
+				]
+			},
+			{
+				"type": "actions",
+				"elements": [
+					{
+						"type": "static_select",
+						"placeholder": {
+							"type": "plain_text",
+							"text": "Select an item",
+							"emoji": true
+						},
+						"initial_option": {INITIAL_OPTION},
+						"options": [
+							{OPTION_LIST}
+						],
+						"action_id": "static_select-action"
+					}
+				]
 			}
 		]
 	}
