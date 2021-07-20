@@ -185,6 +185,8 @@ namespace OcelotConsulting.Avatars
         public string scope { get; set; } = string.Empty;
         public string access_token { get; set; } = string.Empty;
         public string token_type { get; set; } = string.Empty;
+        public string username { get; set; } = string.Empty;
+        public string team_id { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -194,6 +196,7 @@ namespace OcelotConsulting.Avatars
     {
         public string id { get; set; } = string.Empty;
         public string name { get; set; } = string.Empty;
+        public string domain { get; set; } = string.Empty;
     }
 }
 #nullable restore
