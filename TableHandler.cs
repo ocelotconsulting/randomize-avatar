@@ -64,6 +64,23 @@ namespace OcelotConsulting.Avatars
         }
 
         /// <summary>
+        /// Retrieve a specific workspace from the table
+        /// </summary>
+        /// <param name="team_id">The <see cref="OcelotConsulting.Avatars.OAuthV2AuthorizeTeam.id"/> of the user</param>
+        /// <returns><see cref="OcelotConsulting.Avatars.UserEntity"/></returns>
+        public static WorkspaceBotEntity? GetWorkspaceBot(string team_id)
+        {
+            // Check for valid parameters
+            if (string.IsNullOrEmpty(team_id))
+                throw new ArgumentNullException(paramName: nameof(team_id));
+
+            // A basic LINQ expression makes this query very easy
+            return TableHandler.GetTableClient(Settings.GetSetting(Settings.WorkspaceTableName))
+                .Query<WorkspaceBotEntity>(a => a.team_id == team_id)
+                .FirstOrDefault();
+        }
+
+        /// <summary>
         /// Insert a new <see cref="OcelotConsulting.Avatars.WorkspaceBotEntity"/> or update an existing one with the given information
         /// </summary>
         /// <param name="authedResponse">An <see cref="OcelotConsulting.Avatars.OAuthV2Authorize"/> response from <see cref="OcelotConsulting.Avatars.SignInWithSlackFunction.SlackCallback(Microsoft.Azure.Functions.Worker.Http.HttpRequestData, FunctionContext)"/></param>
@@ -118,6 +135,27 @@ namespace OcelotConsulting.Avatars
 
             // A valid status should be in the 2xx HTTP status codes
             return resp.Status >= 200 && resp.Status <= 299;
+        }
+
+        /// <summary>
+        /// Retrieve a specific user from the table
+        /// </summary>
+        /// <param name="user_id">The <see cref="OcelotConsulting.Avatars.OAuthV2AuthorizeAuthedUser.id"/> of the user</param>
+        /// <param name="team_id">The <see cref="OcelotConsulting.Avatars.OAuthV2AuthorizeTeam.id"/> of the user</param>
+        /// <returns><see cref="OcelotConsulting.Avatars.UserEntity"/></returns>
+        public static UserEntity? GetUser(string user_id, string team_id)
+        {
+            // Check for valid parameters
+            if (string.IsNullOrEmpty(user_id))
+                throw new ArgumentNullException(paramName: nameof(user_id));
+                
+            if (string.IsNullOrEmpty(team_id))
+                throw new ArgumentNullException(paramName: nameof(team_id));
+
+            // A basic LINQ expression makes this query very easy
+            return TableHandler.GetTableClient(Settings.GetSetting(Settings.UserTableName))
+                .Query<UserEntity>(a => a.user_id == user_id && a.team_id == team_id)
+                .FirstOrDefault();
         }
 
         /// <summary>

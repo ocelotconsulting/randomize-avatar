@@ -142,7 +142,7 @@ namespace OcelotConsulting.Avatars
 
             // Update our home app for this user
             // This can be done in the background
-            Task.Run(async () => await ClientInteractivity.UpdateHomeTab(jsonResponse.access_token, jsonResponse.authed_user.id));
+            Task.Run(async () => await ClientInteractivity.UpdateHomeTab(jsonResponse.authed_user.id, jsonResponse.team.id));
 
             // Deliver the response
             // We will deep-link to our app's home

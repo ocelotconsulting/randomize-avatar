@@ -36,34 +36,36 @@ namespace OcelotConsulting.Avatars
         /// <summary>
         /// This is a background job that will update our home tab in a specific workspace with a given <paramref name="botAccessToken"/>
         /// </summary>
-        /// <param name="botAccessToken">An access token that must begin with "xoxb-"</param>
-        /// <param name="userId">The user that is assigned this home tab</param>
-        public static async Task UpdateHomeTab(string botAccessToken, string userId)
+        /// <param name="user_id">The user that is assigned this home tab</param>
+        /// <param name="team_id">The team ID associated with this workspace</param>
+        public static async Task UpdateHomeTab(string user_id, string team_id)
         {
             // Check for the parameters
-            if (string.IsNullOrEmpty(botAccessToken))
-                throw new ArgumentNullException(paramName: nameof(botAccessToken));
+            if (string.IsNullOrEmpty(user_id))
+                throw new ArgumentNullException(paramName: nameof(user_id));
                 
-            if (string.IsNullOrEmpty(userId))
-                throw new ArgumentNullException(paramName: nameof(userId));
+            if (string.IsNullOrEmpty(team_id))
+                throw new ArgumentNullException(paramName: nameof(team_id));
 
-            // Does it look valid?
-            if (!botAccessToken.Trim().StartsWith("xoxb-", StringComparison.InvariantCultureIgnoreCase))
-                throw new ArgumentException("Invalid token provided, not a bot access token.", paramName: nameof(botAccessToken));
+            // Get the token for this team
+            var workspaceBot = TableHandler.GetWorkspaceBot(team_id);
 
-            // We have a (potentially) valid botAccessToken
-            botAccessToken = botAccessToken.Trim();
+            if (workspaceBot == default(WorkspaceBotEntity))
+                throw new ArgumentException($"Unable to lookup the bot entry for team '{team_id}'");
+
+            // Get our user's information so we know their current settings
+            var user = TableHandler.GetUser(user_id, team_id);
 
             // We need to get the file contents we will be sending
             var jsonBody = await File.ReadAllTextAsync(Path.Join(ClientInteractivity.ViewsDirectory, ClientInteractivity.HomeTab));
 
             // Replace the user_id setting
-            jsonBody = jsonBody.Replace("{USER_ID}", userId);
+            jsonBody = jsonBody.Replace("{USER_ID}", user_id);
 
             using(var client = new HttpClient())
             {
                 // Set our Bearer header
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", botAccessToken);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", workspaceBot.accessToken);
 
                 // Create our body
                 var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
