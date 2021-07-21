@@ -132,18 +132,7 @@ namespace OcelotConsulting.Avatars
             }
 
             // Replace our next update string
-            DateTimeOffset nextRuntime = DateTimeOffset.UtcNow;
-            if (user.LastAvatarChange.HasValue)
-            {
-                // Get the last time it was changed
-                nextRuntime = user.LastAvatarChange.Value;
-
-                // Add the frequency onto it
-                nextRuntime = nextRuntime.AddSeconds(user.UpdateFrequencySeconds);
-            }
-
-            // Now we find the next hour rotation
-            nextRuntime = ClientInteractivity.FindNextHour(nextRuntime);
+            DateTimeOffset nextRuntime = ClientInteractivity.FindNextExecution(user.LastAvatarChange);
 
             // Do the actual replacement
             jsonBody = jsonBody.Replace("{NEXT_UPDATE}", string.Concat("<!date^", nextRuntime.ToUnixTimeSeconds().ToString("D"), "^{date_short_pretty} {time}|Unknown>"));
@@ -166,14 +155,58 @@ namespace OcelotConsulting.Avatars
         /// </summary>
         /// <param name="current">The time to work off from</param>
         /// <returns>The <see cref="System.DateTimeOffset"/> object of the next runtime</returns>
-        private static DateTimeOffset FindNextHour(DateTimeOffset current)
+        private static DateTimeOffset FindNextExecution(DateTimeOffset? lastExecution = null, int frequencySeconds = 3600)
         {
-            // Get the date information out of our current object
-            var retDT = new DateTimeOffset(current.Year, current.Month, current.Day, current.Hour, 0, 0, 0, current.Offset);
+            // This is better than our simple +1 hour math before
+            // We determine the actual execution times eligibile for this
+            // based on it running hourly
 
-            // Bump up to the next hour
-            return retDT.AddHours(1);
+            // If there has been no previous execution, return the next hour
+            if (!lastExecution.HasValue)
+                return FindNextHour(DateTimeOffset.Now);
+
+            // We're going to round up/down if we are +/- 5 minutes from the top of the hour
+            // This corresponds with our validation in UpdateAvatar
+            var lastRuntime = lastExecution.Value.Minute >= 55 ? ClientInteractivity.FindNextHour(lastExecution.Value) : (lastExecution.Value.Minute <= 5 ? ClientInteractivity.GetCurrentHour(lastExecution.Value) : lastExecution.Value);
+
+            // Test if the next hour is the next runtime
+            var runHour = ClientInteractivity.FindNextHour(lastRuntime);
+
+            // First check if this is far enough
+            var ts = runHour - lastRuntime;
+
+            // If this is long enough, return it, otherwise we try more math
+            if (ts.TotalSeconds >= frequencySeconds)
+                return runHour;
+
+            // Next, we add the frequency on top
+            var nextRuntime = lastRuntime.AddSeconds(frequencySeconds);
+
+            // Possibilities:
+            // Minute == 0 => lastExecution was between 55 minutes and 05 minutes of an hour, was rounded, this is our next runtime
+            // 5 < Minute < 55 => Other, we will need to round up to the next hour to be triggered
+            if (nextRuntime.Minute == 0)
+                return nextRuntime;
+
+            return ClientInteractivity.FindNextHour(nextRuntime);
         }
+
+        /// <summary>
+        /// Get the current hour of the given <see cref="System.DateTimeOffset"/> object
+        /// </summary>
+        /// <param name="current">The time to work off from</param>
+        /// <returns><see cref="System.DateTimeOffset"/></returns>
+        private static DateTimeOffset GetCurrentHour(DateTimeOffset current) =>
+            new DateTimeOffset(current.Year, current.Month, current.Day, current.Hour, 0, 0, 0, current.Offset);
+
+        /// <summary>
+        /// Given a time, find the top of the next hour
+        /// </summary>
+        /// <param name="current">The time to work off from</param>
+        /// <returns><see cref="System.DateTimeOffset"/></returns>
+        private static DateTimeOffset FindNextHour(DateTimeOffset current) =>
+            // Bump up to the next hour
+            ClientInteractivity.GetCurrentHour(current).AddHours(1);
 
         /// <summary>
         /// A method to return the JSON string that describes an option value
