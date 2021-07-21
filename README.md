@@ -6,7 +6,7 @@ This is a demo Azure Function application which will update a Slack avatar with 
 
 * Slack Workspace and Account
 * Azure Subscription
-* Sample code from branch `single-token-poc`
+* Sample code from branch `multi-user-poc`
 
 ## Slack Requirements
 
@@ -14,9 +14,11 @@ Slack has moved away from [legacy API Tokens](https://api.slack.com/legacy/custo
 
 ### Required Permissions
 
-Slack works in an OAuth 2.0 setup where permissions are defined as scopes. For this application we need [users.profile:write](https://api.slack.com/scopes/users.profile:write). This permission allows the application to update the user's profile information (i.e. name, email, etc.) as well as update or remove their avatar. We will utilize the [users.setPhoto](https://api.slack.com/methods/users.setPhoto) web request to do our work.
+Slack works in an OAuth 2.0 setup where permissions are defined as scopes. For this application we need [users.profile:write](https://api.slack.com/scopes/users.profile:write) and the bot permission [chat:write](https://api.slack.com/scopes/chat:write) only to enable the Home Tab. The user permission allows the application to update the user's profile information (i.e. name, email, etc.) as well as update or remove their avatar. We will utilize the [users.setPhoto](https://api.slack.com/methods/users.setPhoto) web request to do our work.
 
 ### Install the Slack App
+
+This is the easiest way to setup the Slack App. However, if you have previously setup the `single-user-poc` application, you cannot modify the manifest and instead need to update it manually.
 
 1. Browse to [https://api.slack.com/apps](https://api.slack.com/apps)
 2. Click on "Create New App"
@@ -24,14 +26,32 @@ Slack works in an OAuth 2.0 setup where permissions are defined as scopes. For t
 4. Choose the appropriate workspace for this application
 5. Click Next
 6. Paste the contents of `slack-app/manifest.yml` into the `YAML` tab
+   * The `redirect_urls` and `request_url` values need to be updated with the domain name for your Function App
+   * Example: `https://<Function App Name>.azurewebsites.net/api/SlackCallback`
+   * Example: `https://<Function App Name>.azurewebsites.net/api/SlackInteractiveResponse`
 7. Click Next
 8. Review the setup information and click Confirm when you're satisfied
 
 You may be prompted to "Install to Workspace". If so, click the button to do so and follow the prompts before continuing.
 
-### Retrieve the Slack User Access Token
+### Modify an Existing Slack App
 
-After your app is created, it will appear in your apps list at [https://api.slack.com/apps](https://api.slack.com/apps). Open that app and browse to "OAuth & Permissions" in the menu. Copy the `User OAuth Token` presented at the top of the page. It must begin with `xoxp-` to be valid.
+These are the settings to modify an existing Slack App:
+
+1. Features -> App Home:
+   * Show Tabs -> Home Tab: On
+   * Show Tabs -> Messages Tab: Off
+2. Features -> Interactivity
+   * Interactivity: On
+   * Interactivity -> Request URL: `https://<Function App Name>.azurewebsites.net/api/SlackInteractiveResponse`
+3. Features -> OAuth & Permissions
+   * Redirect URLs -> Add: `https://<Function App Name>.azurewebsites.net/api/SlackCallback`
+   * Save URLs
+   * Scopes -> Bot Token Scopes -> Add: `chat:write`
+
+### Retrieve the Slack OAuth Information
+
+After your app is created, it will appear in your apps list at [https://api.slack.com/apps](https://api.slack.com/apps). Open that app ensure you are on the "Basic Information" page. Save the `Client ID` and `Client Secret` values for later.
 
 ## Azure Infrastructure
 
@@ -61,11 +81,17 @@ In order to access the Slack API, we need to provide the `User OAuth Token` gath
 1. Open the Function App in the Azure Portal
 2. Click Configuration on the left menu
 3. On the Application Settings tab, click "New application setting"
-4. Name: `SlackToken`
-5. Value: `<Token Copied Earlier>`
-6. Click OK
-7. Click Save
-8. Click Continue
+4. Name: `SlackClientId`
+5. Value: `<Client ID Copied Earlier>`
+6. Name: `SlackClientSecret`
+7. Value: `<Client Secret Copied Earlier>`
+8. Name: `UserList`
+9. Value: `UserList` (or another name for the user table)
+10. Name: `WorkspaceList`
+11. Value: `WorkspaceList` (or another name for the workspace table)
+12. Click OK
+13. Click Save
+14. Click Continue
 
 ## Deploy the Function App
 
@@ -80,25 +106,9 @@ There are many ways to deploy an Azure Function App. We are going to perform a m
 7. Go to Tools -> Zip Push Deploy
 8. Drag and drop, or click Upload, the ZIP file you created earlier
 9. Confirm that `slack-avatar.dll` and other files are in the top-level folder, if they're not you may need to recreate the ZIP file
-10. Go back to the Function App in the Azure Portal
-11. Click Functions in the menu
-12. Confirm `UpdateAvatar` is now in the list, you may need to wait 1 minute and click Refresh
-13. Open `UpdateAvatar`
-14. Click "Code + Test" in the menu
-15. Click "Test/Run" to trigger a test
-16. Verify the avatar has updated in Slack
 
-In testing, the "Test/Run" button was not always accessible. You can utilize the [manual run method](https://docs.microsoft.com/en-us/azure/azure-functions/functions-manually-run-non-http). Here is a sample cURL request:
+## Login to Register the Account
 
-```powershell
-curl --request POST -H 'x-functions-key:[KEY]' -H "Content-Type:application/json" --data "{}" 'https://[FUNCAPP_NAME].azurewebsites.net/admin/functions/UpdateAvatar'
-```
+One of the HTTP functions will automatically redirect you to Slack to request access for the application. To access it, change the domain name below:
 
-## Local Function App with HTTPS
-
-Run as an Administrator with PowerShell:
-
-```powershell
-$cert = New-SelfSignedCertificate -Subject localhost -DnsName localhost -FriendlyName "Functions Development" -KeyUsage DigitalSignature -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.1")
-Export-PfxCertificate -Cert $cert -FilePath certificate.pfx -Password (ConvertTo-SecureString -String 'fakecertificate' -Force -AsPlainText)
-```
+`https://<Function App Name>.azurewebsites.net/api/SignInWithSlack`
