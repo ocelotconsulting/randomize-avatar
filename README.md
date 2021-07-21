@@ -16,6 +16,8 @@ Slack has moved away from [legacy API Tokens](https://api.slack.com/legacy/custo
 
 Slack works in an OAuth 2.0 setup where permissions are defined as scopes. For this application we need [users.profile:write](https://api.slack.com/scopes/users.profile:write) and the bot permission [chat:write](https://api.slack.com/scopes/chat:write) only to enable the Home Tab. The user permission allows the application to update the user's profile information (i.e. name, email, etc.) as well as update or remove their avatar. We will utilize the [users.setPhoto](https://api.slack.com/methods/users.setPhoto) web request to do our work.
 
+## Setup the Slack App
+
 ### Install the Slack App
 
 This is the easiest way to setup the Slack App. However, if you have previously setup the `single-user-poc` application, you cannot modify the manifest and instead need to update it manually.
