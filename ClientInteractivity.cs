@@ -132,7 +132,7 @@ namespace OcelotConsulting.Avatars
             }
 
             // Replace our next update string
-            DateTimeOffset nextRuntime = ClientInteractivity.FindNextExecution(user.LastAvatarChange);
+            DateTimeOffset nextRuntime = ClientInteractivity.FindNextExecution(user.LastAvatarChange, user.UpdateFrequencySeconds);
 
             // Do the actual replacement
             jsonBody = jsonBody.Replace("{NEXT_UPDATE}", string.Concat("<!date^", nextRuntime.ToUnixTimeSeconds().ToString("D"), "^{date_short_pretty} {time}|Unknown>"));
