@@ -53,6 +53,7 @@ namespace OcelotConsulting.Avatars
         /// <typeparam name="string">A user-friendly string</typeparam>
         public static Dictionary<int, string> FrequencyOptionsDict = new Dictionary<int, string>()
         {
+            { 0, "Disable" },
             { 3600, "Every Hour" },
             { 7200, "Every 2 Hours" },
             { 14400, "Every 4 Hours" },
@@ -132,10 +133,17 @@ namespace OcelotConsulting.Avatars
             }
 
             // Replace our next update string
-            DateTimeOffset nextRuntime = ClientInteractivity.FindNextExecution(user.LastAvatarChange, user.UpdateFrequencySeconds);
+            if (user.UpdateFrequencySeconds > 0)
+            {
+                DateTimeOffset nextRuntime = ClientInteractivity.FindNextExecution(user.LastAvatarChange, user.UpdateFrequencySeconds);
 
-            // Do the actual replacement
-            jsonBody = jsonBody.Replace("{NEXT_UPDATE}", string.Concat("<!date^", nextRuntime.ToUnixTimeSeconds().ToString("D"), "^{date_short_pretty} {time}|Unknown>"));
+                // Do the actual replacement
+                jsonBody = jsonBody.Replace("{NEXT_UPDATE}", string.Concat("<!date^", nextRuntime.ToUnixTimeSeconds().ToString("D"), "^{date_short_pretty} {time}|Unknown>"));
+            }
+            else
+            {
+                jsonBody = jsonBody.Replace("{NEXT_UPDATE}", "Disabled");
+            }
 
             using(var client = new HttpClient())
             {

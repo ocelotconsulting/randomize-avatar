@@ -82,6 +82,9 @@ namespace OcelotConsulting.Avatars
 
             foreach(var user in userList)
             {
+                // If this user's frequency is zero, it's disabled
+                if (user.UpdateFrequencySeconds == 0) continue;
+                
                 // First time we're updating
                 if (user.LastAvatarChange == null)
                 {
